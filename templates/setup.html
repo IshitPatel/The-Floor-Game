@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Floor — Setup</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      
+      body { 
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+      }
+      
+      h1 { 
+        color: #fff; 
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+      }
+      
+      h3, h4 { 
+        color: #333;
+        margin-bottom: 12px;
+        font-size: 1.2rem;
+      }
+      
+      p { line-height: 1.6; color: #555; }
+      
+      .container { max-width: 1000px; margin: 0 auto; }
+      
+      form { 
+        max-width: 560px; 
+        border: none;
+        padding: 24px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #f0f3ff 100%);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        transition: box-shadow 150ms ease;
+        margin-bottom: 24px;
+      }
+      
+      form:hover {
+        box-shadow: 0 15px 40px rgba(102,126,234,0.2);
+      }
+      
+      label { 
+        display: block; 
+        margin: 14px 0 6px 0;
+        font-weight: 500;
+        color: #333;
+      }
+      
+      input[type="text"],
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 11px 13px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 150ms ease;
+        font-family: inherit;
+      }
+      
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        background: #fff;
+      }
+      
+      button {
+        padding: 11px 24px;
+        margin-top: 6px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 150ms ease;
+        box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+      }
+      
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+      }
+      
+      button:active {
+        transform: translateY(0);
+      }
+      
+      .section-group {
+        margin-top: 28px;
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+      }
+      
+      .section-group > div {
+        flex: 1;
+        min-width: 300px;
+      }
+      
+      .info-box {
+        background: rgba(255,255,255,0.95);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      }
+      
+      ul {
+        margin-left: 20px;
+        line-height: 2;
+      }
+      
+      li {
+        margin-bottom: 8px;
+        color: #555;
+      }
+      
+      a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 150ms ease;
+        border-bottom: 2px solid transparent;
+      }
+      
+      a:hover {
+        border-bottom-color: #667eea;
+        opacity: 0.8;
+      }
+      
+      .main-form {
+        background: rgba(255,255,255,0.98);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      }
+      
+      .form-grid {
+        display: grid;
+        gap: 24px;
+      }
+      
+      .player-form {
+        background: linear-gradient(135deg, #f5f7fa 0%, #f0f3ff 100%);
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border: 2px solid rgba(102,126,234,0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>The Floor - Setup</h1>
+      <p style="color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 1.1rem; margin-bottom: 24px;">Enter board dimensions and optional initial categories and player names (comma-separated).</p>
+
+      <p style="margin-top: 28px; text-align: center;">
+        {% if game %}
+          <a href="/board" style="color:#f0f3ff">→ Open board</a>
+        {% else %}
+          <a href="/" style="color:#f0f3ff">← Back</a>
+        {% endif %}
+      </p>
+
+      <div class="main-form">
+        <form method="post" action="/create_game">
+          <label>Rows: <input type="number" name="nrows" value="1" min="1" required /></label>
+          <label>Cols: <input type="number" name="ncols" value="2" min="1" required /></label>
+          <label>Initial categories (comma separated)
+            <input type="text" name="categories" placeholder="History, Science, Math" />
+          </label>
+          <label>Initial player names (comma separated)
+            <input type="text" name="player_names" placeholder="Alice, Bob, Charlie" />
+          </label>
+          <button type="submit">Create board</button>
+        </form>
+      </div>
+
+      <div class="section-group">
+        <div class="info-box">
+          <h4>Quick add category</h4>
+          <form method="post" action="/add_category">
+            <label>Name <input type="text" name="name" placeholder="Science" /></label>
+            <label>Description <input type="text" name="description" placeholder="General science knowledge" /></label>
+            <button type="submit">Add category</button>
+          </form>
+        </div>
+
+        <div class="info-box">
+          <h4>Existing categories</h4>
+          <ul>
+            {% if categories %}
+              {% for cid, cat in categories %}
+                <li>#{{ cid }} — <strong>{{ cat.name }}</strong></li>
+              {% endfor %}
+            {% else %}
+              <li style="color: #999;">None yet</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+
+      {% if game %}
+        <section style="margin-top: 28px;">
+          <div class="info-box">
+            <h3>Manage Players</h3>
+            <p style="margin-bottom: 18px;">Update player names and assign categories. Changes take effect immediately.</p>
+            <div class="form-grid">
+              {% for pid, player in game.players.items()|sort %}
+                <form method="post" action="/set_player" class="player-form">
+                  <input type="hidden" name="next" value="setup" />
+                  <input type="hidden" name="player_id" value="{{ player.id }}" />
+                  <label><strong>Player {{ player.id }} name</strong> <input type="text" name="name" value="{{ player.name }}" /></label>
+                  <label><strong>Category</strong>
+                    <select name="category_id">
+                      <option value="">-- none --</option>
+                      {% for cid, cat in categories %}
+                        <option value="{{ cid }}" {% if player.expertise and player.expertise.name==cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </label>
+                  <button type="submit">Update</button>
+                </form>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      {% endif %}
+    </div>
+  </body>
+</html>

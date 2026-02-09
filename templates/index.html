@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Floor - Board</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      
+      body { 
+        font-family: 'Segoe UI', 'Roboto', sans-serif; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+      }
+      
+      h1, h2, h3 { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 12px; }
+      h1 { font-size: 2.5rem; }
+      h2 { font-size: 1.8rem; }
+      h3 { font-size: 1.3rem; }
+      
+      a { color: #fff; text-decoration: none; font-weight: 500; border-bottom: 2px solid rgba(255,255,255,0.5); transition: border-color 150ms ease; }
+      a:hover { border-bottom-color: #fff; }
+      
+      .layout { display: flex; gap: 20px; }
+      .main { flex: 1; min-width: 0; background: rgba(255,255,255,0.95); padding: 24px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); color: #333; }
+      .sidebar { width: 280px; background: rgba(255,255,255,0.95); padding: 24px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); color: #333; }
+      
+      .main section, .sidebar section { margin-bottom: 24px; }
+      .main section:last-child, .sidebar section:last-child { margin-bottom: 0; }
+      
+      .board { display: grid; gap: 12px; margin-top: 16px; align-items: start }
+      .cell { 
+        border: 2px solid #e0e0e0; 
+        padding: 12px; 
+        background: #fafafa; 
+        position: relative; 
+        aspect-ratio: 1 / 1; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: flex-start; 
+        align-items: flex-start; 
+        box-sizing: border-box; 
+        transition: all 140ms ease;
+        width: 100%; 
+        max-width: 100%;
+        border-radius: 8px;
+      }
+      .cell:hover { 
+        transform: translateY(-6px); 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        border-color: #bbb;
+      }
+      .badge { 
+        position: absolute; 
+        top: 8px; 
+        right: 8px; 
+        background: rgba(102,126,234,0.9); 
+        color: #fff; 
+        padding: 4px 8px; 
+        border-radius: 12px; 
+        font-size: 12px; 
+        font-weight: 600 
+      }
+      .cell.selectable { cursor: pointer }
+      .cell.selected-challenger { box-shadow: 0 0 0 3px rgba(102,126,234,0.4), 0 15px 35px rgba(0,0,0,0.15); border-color: #667eea; }
+      .cell.selected-challenged { box-shadow: 0 0 0 3px rgba(220,53,69,0.4), 0 15px 35px rgba(0,0,0,0.15); border-color: #dc3545; }
+      .cell.turn-challenger { outline: 3px solid rgba(40,167,69,0.4); outline-offset: 2px; }
+      
+      .forms { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap }
+      form { 
+        border: none; 
+        padding: 20px; 
+        background: linear-gradient(135deg, #f5f7fa 0%, #f0f3ff 100%);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: box-shadow 150ms ease;
+      }
+      form:hover {
+        box-shadow: 0 8px 16px rgba(102,126,234,0.2);
+      }
+      
+      label { 
+        display: block; 
+        margin-top: 12px;
+        font-weight: 500;
+        color: #333;
+      }
+      
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 150ms ease;
+        font-family: inherit;
+      }
+      
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      input[type="email"]:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        background: #fff;
+      }
+      
+      button {
+        padding: 10px 20px;
+        margin-top: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 150ms ease;
+        box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+      }
+      
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+      }
+      
+      button:active {
+        transform: translateY(0);
+      }
+      
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+      
+      .eliminated { color: #dc3545; font-weight: 600; }
+      .player-row { margin-bottom: 8px; }
+      
+      .game-over { 
+        padding: 16px; 
+        background: linear-gradient(135deg, #ffd89b 0%, #ffa751 100%); 
+        border: none;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(255,167,81,0.4);
+      }
+      
+      p { line-height: 1.6; }
+      ul { margin-left: 20px; line-height: 1.8; }
+      li { margin-bottom: 6px; }
+      
+      input[type="radio"] { margin-right: 8px; cursor: pointer; }
+      
+      .status-box {
+        padding: 12px;
+        background: linear-gradient(135deg, #eef 0%, #ddf 100%);
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>The Floor - Board</h1>
+    <p><a href="/">Back to setup</a></p>
+
+    <div class="layout">
+      <main class="main">
+        {% set last_duel = game.duel_history[-1] if game and game.duel_history else None %}
+        {% if last_duel and not last_duel.winner_id %}
+          <section style="padding:20px; background: linear-gradient(135deg, #ffe5e5 0%, #ffe0e0 100%); border: 2px solid #dc3545; border-radius: 12px; box-shadow: 0 4px 12px rgba(220,53,69,0.2); margin-bottom: 24px;">
+            <h3 style="color: #dc3545;">Resolve last duel</h3>
+            <p>Last duel: <strong>{{ last_duel.challenger.name }}</strong> vs <strong>{{ last_duel.challenged.name }}</strong> on <em>{{ last_duel.category.name }}</em></p>
+            <form method="post" action="/resolve_duel" style="background: transparent; box-shadow: none; padding: 12px 0;">
+              <label style="display: flex; align-items: center; margin-top: 10px;"><input type="radio" name="winner_id" value="{{ last_duel.challenger.id }}" style="margin-right: 8px;"/> {{ last_duel.challenger.name }} (ID {{ last_duel.challenger.id }})</label><br/>
+              <label style="display: flex; align-items: center; margin-top: 10px;"><input type="radio" name="winner_id" value="{{ last_duel.challenged.id }}" style="margin-right: 8px;"/> {{ last_duel.challenged.name }} (ID {{ last_duel.challenged.id }})</label><br/>
+              <button type="submit" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); margin-top: 16px;">Resolve duel</button>
+            </form>
+          </section>
+        {% endif %}
+        <section>
+          <h2 style="color: #333;">Board</h2>
+          {% if game %}
+            <form method="post" action="/start_turn" style="display:inline-block; margin-left:12px">
+              <button type="submit">Start turn (pick random challenger)</button>
+            </form>
+            {% if game.turn_challenger_id %}
+              <div class="status-box" style="margin-top:16px">Current turn challenger: <strong>Player {{ game.turn_challenger_id }} — {{ game.players[game.turn_challenger_id].name }}</strong></div>
+            {% endif %}
+          {% endif %}
+          {% if not game %}
+            <p>No board to display.</p>
+          {% else %}
+            <div id="board" class="board" data-rows="{{ game.board.nrows }}" data-cols="{{ game.board.ncols }}">
+              {% for r in range(game.board.nrows) %}
+                {% for c in range(game.board.ncols) %}
+                  {% set pid = game.board.get_player_at(r, c) %}
+                  {% if pid %}
+                    {% set pc = player_colors.get(pid) if player_colors else None %}
+                    {% if pc %}
+                      {% set style = "background: " + pc['bg'] + "; border: 2px solid " + pc['border'] + "; color: " + pc['text'] + ";" %}
+                      {% set text_color = pc['text'] %}
+                    {% else %}
+                      {% set style = "background: #fafafa; border: 1px solid #ccc; color: #111;" %}
+                      {% set text_color = '#111' %}
+                    {% endif %}
+                  {% else %}
+                    {% set style = "background: #fff; border: 1px solid #ddd; color: #111;" %}
+                    {% set text_color = '#111' %}
+                  {% endif %}
+                  <div class="cell{% if pid and not game.players[pid].eliminated %} selectable{% endif %}{% if game and pid == game.turn_challenger_id %} turn-challenger{% endif %}" data-pid="{{ pid or '' }}" data-eliminated="{{ '1' if (pid and game.players[pid].eliminated) else '0' }}" data-player-name="{{ (game.players[pid].name if pid else '') }}" data-has-expertise="{{ '1' if (pid and game.players[pid].expertise) else '0' }}" style="{{ style }}">
+                    <div><strong>Pos:</strong> ({{ r }}, {{ c }})</div>
+                    {% if pid %}
+                      {% set p = game.players[pid] %}
+                      <div style="color: {{ text_color }}"><strong>{{ p.name }}</strong></div>
+                      <div style="color: {{ text_color }}"><em>{{ p.expertise.name if p.expertise else 'No expertise' }}</em></div>
+                      <div class="badge" style="background: {{ pc['border'] if pc else 'rgba(0,0,0,0.12)' }}; color: {{ pc['text'] if pc else '#000' }}">#{{ pid }} • {{ owner_counts.get(pid, 0) }}</div>
+                    {% else %}
+                      <div>Empty</div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </section>
+        <section>
+          <h2 style="color:#333">Challenge (select on board)</h2>
+          <p>Select a challenger and a challenged cell on the board, then press <strong>Start challenge</strong>.</p>
+          <div style="margin-bottom:8px">
+            <form id="challengeForm" method="post" action="/challenge">
+              <input type="hidden" name="challenger_id" id="challenger_id" value="" />
+              <input type="hidden" name="challenged_id" id="challenged_id" value="" />
+              <button id="startChallenge" type="submit" disabled>Start challenge</button>
+              <button id="clearSelection" type="button">Clear selection</button>
+            </form>
+          </div>
+
+          <div>
+            <strong>Selection:</strong>
+            <span id="selChallenger">Challenger: —</span>
+            <span style="margin-left:12px" id="selChallenged">Challenged: —</span>
+          </div>
+        </section>
+      </main>
+
+      <aside class="sidebar">
+        {% if game and game.over %}
+          <div class="game-over">
+            <strong>Game Over!</strong>
+            <div>Winner: Player {{ game.winner_id }} — {{ game.players[game.winner_id].name }}</div>
+          </div>
+        {% endif %}
+
+        <section>
+          <h3 style="color:#333">Eliminated players</h3>
+          <ul>
+            {% if not game %}
+              <li>No game</li>
+            {% else %}
+              {% set ns = namespace(found=False) %}
+              {% for pid, p in game.players.items() %}
+                {% if p.eliminated %}
+                  {% set ns.found = True %}
+                  <li class="eliminated">Player {{ p.id }} — {{ p.name }}</li>
+                {% endif %}
+              {% endfor %}
+              {% if not ns.found %}
+                <li>None</li>
+              {% endif %}
+            {% endif %}
+          </ul>
+        </section>
+
+        <section>
+          <h3 style="color:#333">Categories</h3>
+          <ul>
+            {% for cid, cat in categories %}
+              <li>#{{ cid }} — <strong>{{ cat.name }}</strong> — {{ cat.description }}</li>
+            {% else %}
+              <li>No categories yet.</li>
+            {% endfor %}
+          </ul>
+        </section>
+      </aside>
+    </div>
+
+        <script>
+      document.addEventListener('DOMContentLoaded', function(){
+        const board = document.getElementById('board');
+        if(!board) return;
+        const challengerInput = document.getElementById('challenger_id');
+        const challengedInput = document.getElementById('challenged_id');
+        const startBtn = document.getElementById('startChallenge');
+        const clearBtn = document.getElementById('clearSelection');
+        const selCh = document.getElementById('selChallenger');
+        const selChd = document.getElementById('selChallenged');
+
+  {% if game and game.turn_challenger_id %}
+  let challenger = '{{ game.turn_challenger_id }}';
+  {% else %}
+  let challenger = null;
+  {% endif %}
+  let challenged = null;
+
+        function updateUI(){
+          challengerInput.value = challenger || '';
+          challengedInput.value = challenged || '';
+          startBtn.disabled = !(challenger && challenged && challenger !== challenged);
+          selCh.textContent = 'Challenger: ' + (challenger ? challenger : '—');
+          selChd.textContent = 'Challenged: ' + (challenged ? challenged : '—');
+          document.querySelectorAll('.cell').forEach(el=>{
+            el.classList.remove('selected-challenger','selected-challenged');
+          });
+          if(challenger){
+            const el = document.querySelector('.cell[data-pid="'+challenger+'"]');
+            if(el) el.classList.add('selected-challenger');
+          }
+          if(challenged){
+            const el = document.querySelector('.cell[data-pid="'+challenged+'"]');
+            if(el) el.classList.add('selected-challenged');
+          }
+        }
+
+        board.querySelectorAll('.cell.selectable').forEach(cell=>{
+          cell.addEventListener('click', ()=>{
+            const pid = cell.getAttribute('data-pid');
+            const elim = cell.getAttribute('data-eliminated') === '1';
+            if(!pid || elim) return;
+            if(!challenger){ challenger = pid; updateUI(); return; }
+            if(challenger === pid){ challenger = null; updateUI(); return; }
+            if(!challenged){ challenged = pid; updateUI(); return; }
+            if(challenged === pid){ challenged = null; updateUI(); return; }
+            challenged = pid; updateUI();
+          });
+        });
+
+        clearBtn.addEventListener('click', ()=>{ challenger=null; challenged=null; updateUI(); });
+
+        // initial UI
+        updateUI();
+
+        // adjust tile size so whole grid fits the available area (width and height)
+        function adjustTileSize(){
+          if(!board) return;
+          const cols = parseInt(board.getAttribute('data-cols')||'1',10);
+          const rows = parseInt(board.getAttribute('data-rows')||'1',10);
+          // computed gap in px from CSS
+          const style = getComputedStyle(board);
+          const gap = parseFloat(style.gap) || parseFloat(style.gridColumnGap) || 12;
+          // available width inside the board's parent (.main)
+          const parent = board.parentElement || document.documentElement;
+          const availWidth = parent.clientWidth;
+          // available height from board top to bottom of viewport (leave 24px margin)
+          const boardTop = board.getBoundingClientRect().top;
+          const availHeight = Math.max(100, window.innerHeight - boardTop - 24);
+
+          const tileByWidth = Math.floor((availWidth - gap * (cols - 1)) / cols);
+          const tileByHeight = Math.floor((availHeight - gap * (rows - 1)) / rows);
+          const tile = Math.max(48, Math.min(tileByWidth, tileByHeight));
+
+          // apply sizes: set explicit column widths and cell sizes
+          board.style.gridTemplateColumns = `repeat(${cols}, ${tile}px)`;
+          board.querySelectorAll('.cell').forEach(cell=>{
+            cell.style.width = tile + 'px';
+            cell.style.height = tile + 'px';
+          });
+        }
+
+        // run on load and resize
+        adjustTileSize();
+        window.addEventListener('resize', adjustTileSize);
+      });
+    </script>
+  </body>
+</html>
